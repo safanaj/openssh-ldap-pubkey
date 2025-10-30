@@ -26,28 +26,28 @@ func TestIsAddrWithFQDN(t *testing.T) {
 }
 
 func TestConnect(t *testing.T) {
-	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", ""}
+	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", "", "", "", ""}
 	if _, err := l.connect(); err != nil {
 		t.Fatal("Connect error")
 	}
 }
 
 func TestConnectFail(t *testing.T) {
-	l := &ldapEnv{"localhost", 9999, "dc=example,dc=org", defaultFilter, false, false, false, "", "", ""}
+	l := &ldapEnv{"localhost", 9999, "dc=example,dc=org", defaultFilter, false, false, false, "", "", "", "", "", ""}
 	if _, err := l.connect(); err == nil {
 		t.Fatal("expecting fail to error.")
 	}
 }
 
 func TestConnectTLS(t *testing.T) {
-	l := &ldapEnv{"localhost", 636, "dc=example,dc=org", defaultFilter, true, true, false, "", "", ""}
+	l := &ldapEnv{"localhost", 636, "dc=example,dc=org", defaultFilter, true, true, false, "", "", "", "", "", ""}
 	if _, err := l.connectTLS(); err != nil {
 		t.Fatal("Connect error")
 	}
 }
 
 func TestBind(t *testing.T) {
-	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "cn=admin,dc=example,dc=org", "password"}
+	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "cn=admin,dc=example,dc=org", "password", "", "", ""}
 	c, _ := l.connect()
 	if err := simpleBind(c, l); err != nil {
 		t.Fatal("Bind error")
@@ -55,7 +55,7 @@ func TestBind(t *testing.T) {
 }
 
 func TestBindFail(t *testing.T) {
-	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "cn=admin,dc=example,dc=org", ""}
+	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "cn=admin,dc=example,dc=org", "", "", "", ""}
 	c, _ := l.connect()
 	if err := simpleBind(c, l); err == nil {
 		t.Fatal("Bind error")
@@ -63,7 +63,7 @@ func TestBindFail(t *testing.T) {
 }
 
 func Example_printPubkey() {
-	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "user0", "", ""}
+	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "user0", "", "", "", "", ""}
 	c, _ := l.connect()
 	simpleBind(c, l)
 	entries, _ := l.search(c)
@@ -74,7 +74,7 @@ func Example_printPubkey() {
 }
 
 func Example_printPubkeyTLS() {
-	l := &ldapEnv{"localhost", 636, "dc=example,dc=org", defaultFilter, true, true, false, "user0", "", ""}
+	l := &ldapEnv{"localhost", 636, "dc=example,dc=org", defaultFilter, true, true, false, "user0", "", "", "", "", ""}
 	c, _ := l.connectTLS()
 	simpleBind(c, l)
 	entries, _ := l.search(c)
@@ -85,7 +85,7 @@ func Example_printPubkeyTLS() {
 }
 
 func Example_printPubkeyDoesNotUseSSHPublicKey() {
-	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "user2", "", ""}
+	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "user2", "", "", "", "", ""}
 	c, _ := l.connect()
 	simpleBind(c, l)
 	entries, _ := l.search(c)
@@ -95,7 +95,7 @@ func Example_printPubkeyDoesNotUseSSHPublicKey() {
 }
 
 func Example_printPubkeyDoesNotExistUser() {
-	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "user5", "", ""}
+	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "user5", "", "", "", "", ""}
 	c, _ := l.connect()
 	simpleBind(c, l)
 	entries, _ := l.search(c)
@@ -106,67 +106,67 @@ func Example_printPubkeyDoesNotExistUser() {
 
 func TestGetHost(t *testing.T) {
 	requestHost := "example.net"
-	l := &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user5", "", ""}
+	l := &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user5", "", "", "", "", ""}
 	if host, err := l.getHost(); host != requestHost && err != nil {
 		t.Fatalf("expected: %s, but got: %s", requestHost, host)
 	}
 
 	requestHost = "localhost"
-	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", ""}
+	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", "", "", "", ""}
 	if host, err := l.getHost(); host != requestHost && err != nil {
 		t.Fatalf("expected: %s, but got: %s", requestHost, host)
 	}
 
 	requestHost = "2001:db8::192:0:2:100"
-	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", ""}
+	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", "", "", "", ""}
 	if host, err := l.getHost(); host != "[%s]" && err != nil {
 		t.Fatalf("expected: [%s], but got: %s", requestHost, host)
 	}
 
 	requestHost = "2001:db8::192:0:2:100%enp0s0"
-	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", ""}
+	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", "", "", "", ""}
 	if host, err := l.getHost(); host != "" && err == nil {
 		t.Fatalf("expected error: 'invalid host / IP address', but got: %s", host)
 	}
 
 	requestHost = "fe80::192:0:2:100%enp0s0"
-	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", ""}
+	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", "", "", "", ""}
 	if host, err := l.getHost(); host != "[%s]" && err != nil {
 		t.Fatalf("expected: [%s], but got: %s", requestHost, host)
 	}
 
 	requestHost = "[2001:db8::192:0:2:100]"
-	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", ""}
+	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", "", "", "", ""}
 	if host, err := l.getHost(); host != "" && err == nil {
 		t.Fatalf("expected error: 'invalid host / IP address', but got: %s", host)
 	}
 
 	requestHost = "192.0.2.100"
-	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", ""}
+	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", "", "", "", ""}
 	if host, err := l.getHost(); host != requestHost || err != nil {
 		t.Fatalf("expected: %s, but got: %s", requestHost, host)
 	}
 
 	requestHost = "192.168.1"
-	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", ""}
+	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", "", "", "", ""}
 	if host, err := l.getHost(); host != "" && err == nil {
 		t.Fatalf("expected error: 'invalid host / IP address', but got: %s", host)
 	}
 
 	requestHost = "invalid:host"
-	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", ""}
+	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", "", "", "", ""}
 	if host, err := l.getHost(); host != "" && err == nil {
 		t.Fatalf("expected error: 'invalid host / IP address', but got: %s", host)
 	}
 
 	requestHost = "invalid_host"
-	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", ""}
+	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", "", "", "", ""}
 	if host, err := l.getHost(); host != "" && err == nil {
 		t.Fatalf("expected error: 'invalid host / IP address', but got: %s", host)
 	}
 
 	requestHost = "invalid host"
-	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", ""}
+	l = &ldapEnv{requestHost, 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", "", "", "", ""}
 	if host, err := l.getHost(); host != "" && err == nil {
 		t.Fatalf("expected error: 'invalid host / IP address', but got: %s", host)
 	}

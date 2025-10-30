@@ -110,7 +110,8 @@ endif
 ifneq ($(GOCOVER),1)
 	go get $(FLAGS) golang.org/x/tools/cmd/cover
 endif
-	_build/bin/golint
+	#_build/bin/golint
+	golint
 	go vet
 	go test -v -covermode=count -coverprofile=c.out $(GOPKG)
 	@if [ -f c.out ]; then \

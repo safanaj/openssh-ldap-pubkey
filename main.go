@@ -100,6 +100,8 @@ func main() {
 		log.Printf("[debug] uid	  : %s\n", l.uid)
 		log.Printf("[debug] binddn: %s\n", l.binddn)
 		log.Printf("[debug] bindpw: %s\n", bindpw)
+		log.Printf("[debug] cert: %s\n", l.cert)
+		log.Printf("[debug] key: %s\n", l.key)
 	}
 	if l.tls {
 		c, err = l.connectTLS()

@@ -8,8 +8,8 @@ import (
 
 func TestArgparse(t *testing.T) {
 	f := "(&(objectClass=posixAccount)(uid=%s)(description=limited))"
-	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", ""}
-	lc := &ldapEnv{"ldap.example.org", 9999, "ou=People,dc=example,dc=org", f, false, false, false, "user0", "", ""}
+	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", "", "", "", ""}
+	lc := &ldapEnv{"ldap.example.org", 9999, "ou=People,dc=example,dc=org", f, false, false, false, "user0", "", "", "", "", ""}
 	os.Args = []string{"test_command"}
 	os.Args = append(os.Args, "-host=ldap.example.org")
 	os.Args = append(os.Args, "-port=9999")
@@ -25,8 +25,8 @@ func TestArgparse(t *testing.T) {
 
 func TestArgparseTLS(t *testing.T) {
 	f := "(&(objectClass=posixAccount)(uid=%s)(description=limited))"
-	l := &ldapEnv{"localhost", 636, "dc=example,dc=org", defaultFilter, false, false, false, "", "", ""}
-	lc := &ldapEnv{"ldap.example.org", 9999, "ou=People,dc=example,dc=org", f, true, false, false, "user0", "", ""}
+	l := &ldapEnv{"localhost", 636, "dc=example,dc=org", defaultFilter, false, false, false, "", "", "", "", "", ""}
+	lc := &ldapEnv{"ldap.example.org", 9999, "ou=People,dc=example,dc=org", f, true, false, false, "user0", "", "", "", "", ""}
 	os.Args = []string{"test_command"}
 	os.Args = append(os.Args, "-host=ldap.example.org")
 	os.Args = append(os.Args, "-port=9999")
@@ -42,8 +42,8 @@ func TestArgparseTLS(t *testing.T) {
 }
 
 func TestArgparseNoOptions(t *testing.T) {
-	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", ""}
-	lc := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", ""}
+	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", "", "", "", ""}
+	lc := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "user1", "", "", "", "", ""}
 	os.Args = []string{"test_command"}
 	os.Args = append(os.Args, "user1")
 	l.argparse(os.Args, version)
@@ -53,7 +53,7 @@ func TestArgparseNoOptions(t *testing.T) {
 }
 
 func TestArgparseNoArg(t *testing.T) {
-	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", ""}
+	l := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", "", "", "", ""}
 	os.Args = []string{"test_command"}
 	if err := l.argparse(os.Args, version); err == nil {
 		t.Fatal("expecting: error without user argument.")

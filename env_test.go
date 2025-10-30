@@ -25,7 +25,7 @@ func TestLoadNslcdConf(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"ldap.example.org", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", ""}
+	lc := &ldapEnv{"ldap.example.org", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", "", "", "", ""}
 	if *lc != *l {
 		t.Fatal("Failed to load testdata/nslcd.conf via NSLCD_CONF env var.")
 	}
@@ -39,7 +39,7 @@ func TestFailLoadNslcdConf(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", ""}
+	lc := &ldapEnv{"localhost", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", "", "", "", ""}
 	if *lc != *l {
 		t.Fatal("Failed to load default configuration.")
 	}
@@ -53,7 +53,7 @@ func TestLoadNslcdConfWithTLS(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"ldap.example.org", 636, "ou=People,dc=example,dc=org", "(&(objectClass=posixAccount)(uid=%s)(description=limited))", true, false, false, "", "", ""}
+	lc := &ldapEnv{"ldap.example.org", 636, "ou=People,dc=example,dc=org", "(&(objectClass=posixAccount)(uid=%s)(description=limited))", true, false, false, "", "", "", "", "", ""}
 	if *lc != *l {
 		t.Fatal("Failed to load default configuration.")
 	}
@@ -67,7 +67,7 @@ func TestLoadNslcdConfWithTLSAllow(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"ldap.example.org", 636, "ou=People,dc=example,dc=org", "(&(objectClass=posixAccount)(uid=%s)(description=limited))", true, true, false, "", "", ""}
+	lc := &ldapEnv{"ldap.example.org", 636, "ou=People,dc=example,dc=org", "(&(objectClass=posixAccount)(uid=%s)(description=limited))", true, true, false, "", "", "", "", "", ""}
 	if *lc != *l {
 		t.Fatal("Failed to load default configuration.")
 	}
@@ -81,7 +81,7 @@ func TestLoadNslcdConfWithTLSNever(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"ldap.example.org", 636, "ou=People,dc=example,dc=org", "(&(objectClass=posixAccount)(uid=%s)(description=limited))", true, true, false, "", "", ""}
+	lc := &ldapEnv{"ldap.example.org", 636, "ou=People,dc=example,dc=org", "(&(objectClass=posixAccount)(uid=%s)(description=limited))", true, true, false, "", "", "", "", "", ""}
 	if *lc != *l {
 		t.Fatal("Failed to load default configuration.")
 	}
@@ -95,7 +95,21 @@ func TestLoadNslcdConfWithTLSSkip(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"192.0.2.100", 636, "ou=People,dc=example,dc=org", "(&(objectClass=posixAccount)(uid=%s)(description=limited))", true, true, false, "", "", ""}
+	lc := &ldapEnv{"192.0.2.100", 636, "ou=People,dc=example,dc=org", "(&(objectClass=posixAccount)(uid=%s)(description=limited))", true, true, false, "", "", "", "", "", ""}
+	if *lc != *l {
+		t.Fatal("Failed to load default configuration.")
+	}
+}
+
+func TestLoadNslcdConfWithTLSClientCert(t *testing.T) {
+	conf, err := filepath.Abs("testdata/nslcd-tls-with-client-cert.conf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	os.Setenv("NSLCD_CONF", conf)
+	l := &ldapEnv{}
+	l.loadNslcdConf()
+	lc := &ldapEnv{"ldap.example.org", 636, "ou=People,dc=example,dc=org", "(&(objectClass=posixAccount)(uid=%s))", true, false, false, "", "", "", "ssl-cert-snakeoil.pem", "ssl-cert-snakeoil.key", ""}
 	if *lc != *l {
 		t.Fatal("Failed to load default configuration.")
 	}
@@ -109,7 +123,7 @@ func TestLoadNslcdConfWithPort(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"example.org", 636, "ou=People,dc=example,dc=org", "(&(objectClass=posixAccount)(uid=%s)(description=limited))", true, false, false, "", "", ""}
+	lc := &ldapEnv{"example.org", 636, "ou=People,dc=example,dc=org", "(&(objectClass=posixAccount)(uid=%s)(description=limited))", true, false, false, "", "", "", "", "", ""}
 	if *lc != *l {
 		t.Fatal("Failed to load default configuration.")
 	}
@@ -123,7 +137,7 @@ func TestLoadNslcdConfNoFilter(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"ldap.example.org", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", ""}
+	lc := &ldapEnv{"ldap.example.org", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", "", "", "", ""}
 	if *lc != *l {
 		t.Fatal("Failed to load default configuration.")
 	}
@@ -137,7 +151,7 @@ func TestLoadNslcdConfNoUsername(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"ldap.example.org", 389, "dc=example,dc=org", "(objectClass=posixAccount)", false, false, false, "", "", ""}
+	lc := &ldapEnv{"ldap.example.org", 389, "dc=example,dc=org", "(objectClass=posixAccount)", false, false, false, "", "", "", "", "", ""}
 	if *lc != *l {
 		t.Fatal("Failed to load default configuration.")
 	}
@@ -151,7 +165,7 @@ func TestLoadNslcdConfInvalidURL(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", ""}
+	lc := &ldapEnv{"", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", "", "", "", ""}
 	if *lc == *l {
 		t.Fatal("Failed to parse url.")
 	}
@@ -165,7 +179,7 @@ func TestLoadNslcdConfInvalidPort(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", ""}
+	lc := &ldapEnv{"", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "", "", "", "", ""}
 	if *lc == *l {
 		t.Fatal("Failed to validate port syntax.")
 	}
@@ -179,7 +193,7 @@ func TestLoadNslcdConfInvalidBind(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"ldap.example.org", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "cn=nslcd,dc=example,dc=org", ""}
+	lc := &ldapEnv{"ldap.example.org", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "cn=nslcd,dc=example,dc=org", "", "", "", ""}
 	if *lc != *l {
 		t.Fatal("Failed to validate bind syntax.")
 	}
@@ -193,7 +207,7 @@ func TestLoadNslcdConfBind(t *testing.T) {
 	os.Setenv("NSLCD_CONF", conf)
 	l := &ldapEnv{}
 	l.loadNslcdConf()
-	lc := &ldapEnv{"ldap.example.org", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "cn=nslcd,dc=example,dc=org", "1password"}
+	lc := &ldapEnv{"ldap.example.org", 389, "dc=example,dc=org", defaultFilter, false, false, false, "", "cn=nslcd,dc=example,dc=org", "1password", "", "", ""}
 	if *lc != *l {
 		t.Fatal("Failed to validate bind with pwd syntax.")
 	}

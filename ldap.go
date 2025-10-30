@@ -1,11 +1,14 @@
 package main
 
 import (
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"strings"
 
+	"crypto"
 	"crypto/tls"
 	"crypto/x509"
 
@@ -23,6 +26,9 @@ type ldapEnv struct {
 	uid    string
 	binddn string
 	bindpw string
+	cert   string
+	key    string
+	cacert string
 }
 
 func (l *ldapEnv) connect() (*ldap.Conn, error) {
@@ -35,6 +41,32 @@ func (l *ldapEnv) connect() (*ldap.Conn, error) {
 	return ldap.Dial("tcp", fmt.Sprintf("%s:%d", host, l.port))
 }
 
+func getX509CertFromPEMFile(pemFilePath string) (*x509.Certificate, error) {
+	b, err := os.ReadFile(pemFilePath)
+	if err != nil {
+		return nil, err
+	}
+	block, _ := pem.Decode(b)
+	return x509.ParseCertificate(block.Bytes)
+}
+
+func getPrivateKeyFromPEMFile(pemFilePath string, algo x509.PublicKeyAlgorithm) (crypto.PrivateKey, error) {
+	b, err := os.ReadFile(pemFilePath)
+	if err != nil {
+		logging(err)
+		return nil, err
+	}
+	block, _ := pem.Decode(b)
+	switch algo {
+	case x509.RSA:
+		return x509.ParsePKCS1PrivateKey(block.Bytes)
+	case x509.ECDSA:
+		return x509.ParseECPrivateKey(block.Bytes)
+	default:
+		return x509.ParsePKCS8PrivateKey(block.Bytes)
+	}
+}
+
 func (l *ldapEnv) connectTLS() (*ldap.Conn, error) {
 	host, err := l.getHost()
 	if err != nil {
@@ -42,19 +74,50 @@ func (l *ldapEnv) connectTLS() (*ldap.Conn, error) {
 		return nil, err
 	}
 
-	certs, err := x509.SystemCertPool()
-	if err != nil {
-		logging(err)
-		return nil, err
+	tlsConfig := &tls.Config{}
+	caCert := ((*x509.Certificate)(nil))
+	if l.cacert != "" {
+		caCert, err = getX509CertFromPEMFile(l.cacert)
+		if err != nil {
+			logging(err)
+			return nil, err
+		}
 	}
-	tlsConfig := &tls.Config{
-		RootCAs: certs,
+	if caCert != nil {
+		certs := x509.NewCertPool()
+		certs.AddCert(caCert)
+		tlsConfig.RootCAs = certs
+	} else {
+		certs, err := x509.SystemCertPool()
+		if err != nil {
+			logging(err)
+			return nil, err
+		}
+		tlsConfig.RootCAs = certs
+	}
+
+	if l.cert != "" && l.key != "" {
+		cert, err := getX509CertFromPEMFile(l.cert)
+		if err != nil {
+			logging(err)
+			return nil, err
+		}
+		key, err := getPrivateKeyFromPEMFile(l.key, cert.PublicKeyAlgorithm)
+		if err != nil {
+			logging(err)
+			return nil, err
+		}
+
+		tlsCert := tls.Certificate{Leaf: cert}
+		tlsCert.PrivateKey = key
+		tlsCert.Certificate = append(tlsCert.Certificate, cert.Raw)
+		tlsConfig.Certificates = append(tlsConfig.Certificates, tlsCert)
 	}
 
 	if !isAddr(host) {
 		tlsConfig.ServerName = host
 	}
-	if isAddr(host) || l.skip {
+	if /* isAddr(host) || */ l.skip {
 		tlsConfig.InsecureSkipVerify = true
 	}
 	return ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", host, l.port), tlsConfig)

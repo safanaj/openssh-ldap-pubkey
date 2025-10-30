@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"io/ioutil"
 	"net/url"
 )
 
@@ -24,7 +23,7 @@ func getNslcdConfPath() string {
 
 func (l *ldapEnv) loadNslcdConf() error {
 	conf := getNslcdConfPath()
-	b, err := ioutil.ReadFile(conf)
+	b, err := os.ReadFile(conf)
 	if err != nil {
 		l.host = "localhost"
 		l.port = 389
@@ -35,11 +34,14 @@ func (l *ldapEnv) loadNslcdConf() error {
 		l.debug = false
 		l.binddn = ""
 		l.bindpw = ""
+		l.cert = ""
+		l.key = ""
+		l.cacert = ""
 	}
-	for _, s := range strings.Split(string(b), "\n") {
+	for s := range strings.SplitSeq(string(b), "\n") {
 		v := strings.Split(s, " ")
-		switch {
-		case v[0] == "uri":
+		switch v[0] {
+		case "uri":
 			u, err := url.Parse(v[1])
 			if err != nil {
 				return err
@@ -68,22 +70,32 @@ func (l *ldapEnv) loadNslcdConf() error {
 					l.port = 389
 				}
 			}
-		case v[0] == "base":
+		case "base":
 			l.base = v[1]
-		case v[0] == "binddn":
+		case "binddn":
 			l.binddn = v[1]
-		case v[0] == "bindpw":
+		case "bindpw":
 			l.bindpw = v[1]
-		case v[0] == "pam_authz_search":
+		case "pam_authz_search":
 			if strings.Contains(v[1], "$username") {
 				l.filter = strings.Replace(v[1], "$username", "%s", 1)
 			} else {
 				l.filter = v[1]
 			}
-		case v[0] == "tls_reqcert":
+		case "tls_reqcert":
 			if v[1] == "never" || v[1] == "allow" {
 				l.skip = true
 			}
+		case "ssl":
+			if v[1] == "start_tls" || v[1] == "on" {
+				l.tls = true
+			}
+		case "tls_cert":
+			l.cert = v[1]
+		case "tls_key":
+			l.key = v[1]
+		case "tls_cacert":
+			l.cacert = v[1]
 		default:
 			if l.filter == "" {
 				l.filter = defaultFilter
