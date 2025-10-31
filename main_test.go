@@ -63,8 +63,8 @@ func TestArgparseNoArg(t *testing.T) {
 func ShowVersion() {
 	l := &ldapEnv{}
 	os.Args = append(os.Args, "-version")
-	ver = "X.X.X"
-	l.argparse(os.Args[4:], ver)
+	version = "X.X.X"
+	l.argparse(os.Args[4:], version)
 	// Output:
 	// openssh-ldap-pubkey X.X.X
 	//

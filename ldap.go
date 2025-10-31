@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/pem"
 	"errors"
 	"fmt"
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	"crypto/tls"
 	"crypto/x509"
@@ -165,7 +167,9 @@ func (l *ldapEnv) validateIPv6() (string, error) {
 func (l *ldapEnv) validateHost() (string, error) {
 	var host string
 	var err error
-	addrs, err := net.LookupHost(l.host)
+	ctx, cancel := context.WithTimeout(context.TODO(), 200*time.Millisecond)
+	defer cancel()
+	addrs, err := (&net.Resolver{PreferGo: true}).LookupHost(ctx, l.host)
 	if err == nil && len(addrs) > 0 {
 		host = l.host
 	} else {
