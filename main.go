@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"gopkg.in/ldap.v2"
+	"github.com/go-ldap/ldap/v3"
 )
 
 const (
@@ -22,6 +22,7 @@ var (
 	license = `openssh-ldap-pubkey %s
 
 Copyright (C) 2015-2020 Kouhei Maeda
+Copyright (C) 2025 Marco Bardelli
 License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 This is free software, and you are welcome to redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
@@ -102,17 +103,24 @@ func main() {
 		log.Printf("[debug] bindpw: %s\n", bindpw)
 		log.Printf("[debug] cert: %s\n", l.cert)
 		log.Printf("[debug] key: %s\n", l.key)
+		log.Printf("[debug] cacert: %s\n", l.cert)
 	}
+	c, err = l.connect()
+	logging(err)
 	if l.tls {
-		c, err = l.connectTLS()
+		tlsCfg, err := l.getTLSConfig()
 		logging(err)
+		logging(c.StartTLS(tlsCfg))
 	} else {
-		c, err = l.connect()
-		logging(err)
+		c.Start()
 	}
 	defer c.Close()
 
-	logging(simpleBind(c, l))
+	if l.binddn != "" {
+		logging(simpleBind(c, l))
+	} else {
+		logging(c.ExternalBind())
+	}
 	entries, err = l.search(c)
 	logging(err)
 	logging(printPubkey(entries))

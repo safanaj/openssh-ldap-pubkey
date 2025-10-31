@@ -8,11 +8,10 @@ import (
 	"os"
 	"strings"
 
-	"crypto"
 	"crypto/tls"
 	"crypto/x509"
 
-	"gopkg.in/ldap.v2"
+	"github.com/go-ldap/ldap/v3"
 )
 
 type ldapEnv struct {
@@ -38,7 +37,7 @@ func (l *ldapEnv) connect() (*ldap.Conn, error) {
 		logging(err)
 		return nil, err
 	}
-	return ldap.Dial("tcp", fmt.Sprintf("%s:%d", host, l.port))
+	return ldap.DialURL(fmt.Sprintf("ldap://%s:%d", host, l.port))
 }
 
 func getX509CertFromPEMFile(pemFilePath string) (*x509.Certificate, error) {
@@ -50,24 +49,7 @@ func getX509CertFromPEMFile(pemFilePath string) (*x509.Certificate, error) {
 	return x509.ParseCertificate(block.Bytes)
 }
 
-func getPrivateKeyFromPEMFile(pemFilePath string, algo x509.PublicKeyAlgorithm) (crypto.PrivateKey, error) {
-	b, err := os.ReadFile(pemFilePath)
-	if err != nil {
-		logging(err)
-		return nil, err
-	}
-	block, _ := pem.Decode(b)
-	switch algo {
-	case x509.RSA:
-		return x509.ParsePKCS1PrivateKey(block.Bytes)
-	case x509.ECDSA:
-		return x509.ParseECPrivateKey(block.Bytes)
-	default:
-		return x509.ParsePKCS8PrivateKey(block.Bytes)
-	}
-}
-
-func (l *ldapEnv) connectTLS() (*ldap.Conn, error) {
+func (l *ldapEnv) getTLSConfig() (*tls.Config, error) {
 	host, err := l.getHost()
 	if err != nil {
 		logging(err)
@@ -97,20 +79,11 @@ func (l *ldapEnv) connectTLS() (*ldap.Conn, error) {
 	}
 
 	if l.cert != "" && l.key != "" {
-		cert, err := getX509CertFromPEMFile(l.cert)
+		tlsCert, err := tls.LoadX509KeyPair(l.cert, l.key)
 		if err != nil {
 			logging(err)
 			return nil, err
 		}
-		key, err := getPrivateKeyFromPEMFile(l.key, cert.PublicKeyAlgorithm)
-		if err != nil {
-			logging(err)
-			return nil, err
-		}
-
-		tlsCert := tls.Certificate{Leaf: cert}
-		tlsCert.PrivateKey = key
-		tlsCert.Certificate = append(tlsCert.Certificate, cert.Raw)
 		tlsConfig.Certificates = append(tlsConfig.Certificates, tlsCert)
 	}
 
@@ -120,7 +93,7 @@ func (l *ldapEnv) connectTLS() (*ldap.Conn, error) {
 	if /* isAddr(host) || */ l.skip {
 		tlsConfig.InsecureSkipVerify = true
 	}
-	return ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", host, l.port), tlsConfig)
+	return tlsConfig, nil
 }
 
 func simpleBind(c *ldap.Conn, l *ldapEnv) error {
