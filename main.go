@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	initialVersion   = "0.3.2"
+	initialVersion   = "0.3.3"
 	sshPublicKeyName = "sshPublicKey"
 )
 

@@ -16,8 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VERSION ?= 0.3.2
-COMPONENT = "openssh-ldap-pubkey"
+VERSION ?= 0.3.3
+COMPONENT = openssh-ldap-pubkey
 FLAGS =
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
