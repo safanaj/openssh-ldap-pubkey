@@ -11,13 +11,13 @@ import (
 )
 
 const (
-	version          = "0.3.0"
+	initialVersion   = "0.3.2"
 	sshPublicKeyName = "sshPublicKey"
 )
 
 var (
-	ver        string
-	errVersion = errors.New("show version")
+	version    string = initialVersion
+	errVersion        = errors.New("show version")
 
 	license = `openssh-ldap-pubkey %s
 
@@ -45,7 +45,7 @@ func (l *ldapEnv) argparse(args []string, ver string) error {
 	flags.Parse(args[1:])
 
 	if *v {
-		fmt.Printf(license, ver)
+		fmt.Printf(license, version)
 		return errVersion
 	}
 	if l.host != *h {
@@ -82,10 +82,10 @@ func main() {
 	l.loadNslcdConf()
 	var err error
 	var entries []*ldap.Entry
-	if ver == "" {
-		ver = version
+	if version == "" {
+		version = initialVersion
 	}
-	logging(l.argparse([]string{}, ver))
+	logging(l.argparse([]string{}, version))
 	c := &ldap.Conn{}
 	if l.debug {
 		var bindpw = ""
